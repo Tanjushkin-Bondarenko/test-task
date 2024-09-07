@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { ValidatorFn, AbstractControl, ValidationErrors, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { PasswordFieldEmpty } from '../passwordfieldempty/passwordfieldempty.component';
 
 export function PasswordValidator(): ValidatorFn {
   return(control: AbstractControl): ValidationErrors | null =>{
@@ -14,7 +14,7 @@ export function PasswordValidator(): ValidatorFn {
     let passwordMiddle
     if(hasLetterAndNumber && hasMinLength){
       passwordMiddle = hasLetterAndNumber&&hasMinLength; 
-        passwordMiddle}
+      }
     if(hasLetterAndSymbols && hasMinLength){
       passwordMiddle = hasLetterAndSymbols && hasMinLength
     }
@@ -32,28 +32,16 @@ export function PasswordValidator(): ValidatorFn {
   } 
 
 }
-function PasswordFieldEnpty(): ValidatorFn{
-  return(control: AbstractControl): ValidationErrors | null =>{
-    const value = control.value;
-    
-    const notEmptyField = value.length >=1
 
-    return !notEmptyField? {
-        emptyField:{ 
-        notEmptyField}
- }: null
-
-  }
-}
 @Component({
-  selector: 'app-root',
+  selector: 'app-passwordfield',
   standalone: true,
-  imports: [RouterOutlet, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './passwordfield.component.html',
   styleUrl: './passwordfield.component.css'
 })
 
-export class AppComponent {
+export class PasswordfieldComponent {
   title = 'testTaskAngular';
   registerForm: FormGroup;
   isSubmitted = false;
@@ -66,7 +54,7 @@ export class AppComponent {
         login: new FormControl("", Validators.required),
         password: new FormControl("", [Validators.required, Validators.minLength(8),
            PasswordValidator(),
-           PasswordFieldEnpty(),
+           PasswordFieldEmpty(),
             Validators.pattern(/\D\d/)]),
            
         
@@ -75,9 +63,7 @@ export class AppComponent {
 
    
   onSubmit():void{
-   
     this.isSubmitted = true
   }
 
-  
 }
