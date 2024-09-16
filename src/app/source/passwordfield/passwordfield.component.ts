@@ -1,42 +1,12 @@
-import { Component } from '@angular/core';
-import { ValidatorFn, AbstractControl, ValidationErrors, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { PasswordFieldEmpty } from '../passwordfieldempty/passwordfieldempty.component';
 
-export function PasswordValidator(): ValidatorFn {
-  return(control: AbstractControl): ValidationErrors | null =>{
-    const value = control.value;
-
-    const hasLetterAndNumber = /\d\D/.test(value)
-    const hasLetterAndSymbols = /\D[!@#$%^&*(),.?":{}|<>]/.test(value)
-    const hasNumberAndSymbols = /\d[!@#$%^&*(),.?":{}|<>]/.test(value)
-    const hasMinLength = value ? value.length >=8 : false
-   
-    let passwordMiddle
-    if(hasLetterAndNumber && hasMinLength){
-      passwordMiddle = hasLetterAndNumber&&hasMinLength; 
-      }
-    if(hasLetterAndSymbols && hasMinLength){
-      passwordMiddle = hasLetterAndSymbols && hasMinLength
-    }
-    if(hasNumberAndSymbols&&hasMinLength){
-      passwordMiddle = hasNumberAndSymbols && hasMinLength
-    }
-    return !passwordMiddle ? {
-      passwordAnother: {
-        hasLetterAndNumber,
-        hasLetterAndSymbols,
-        hasMinLength,
-        hasNumberAndSymbols
-      }
-    }: null
-  } 
-
-}
+import { Component, } from '@angular/core';
+import {  FormGroup, Validators, ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-passwordfield',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './passwordfield.component.html',
   styleUrl: './passwordfield.component.css'
 })
@@ -44,26 +14,45 @@ export function PasswordValidator(): ValidatorFn {
 export class PasswordfieldComponent {
   title = 'testTaskAngular';
   registerForm: FormGroup;
-  isSubmitted = false;
-  PasswordValidator!: ValidatorFn;
+  levelOfValidity: string ='empty';
 
-  constructor(){
+  constructor( private fb: FormBuilder){
+    this.registerForm =  this.fb.group({
+        login: [
+          "",
+           Validators.required
+          ],
+        password: [
+          "", 
+          [
+          Validators.required, 
+          Validators.minLength(8),
+          ]],
+      })
 
-    this.registerForm = new FormGroup(
-      {
-        login: new FormControl("", Validators.required),
-        password: new FormControl("", [Validators.required, Validators.minLength(8),
-           PasswordValidator(),
-           PasswordFieldEmpty(),
-            Validators.pattern(/\D\d/)]),
-           
-        
-      }
-  )}
-
+ this.registerForm.get('password')?.valueChanges.subscribe((value: string) =>{
+  
+  this.passwordValidator(value)
+  });
+};
+passwordValidator(password: string){ 
+if(!password){
+   this.levelOfValidity="empty"
+}else if(password.length<8){
+ this.levelOfValidity = "tooShort"
+}else{
+  const hasLetters = /[a-zA-Z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSymbols = /[!@#$%^&*(),.?":{}|<>]/.test(password)
    
-  onSubmit():void{
-    this.isSubmitted = true
+  if((hasLetters && !hasNumbers && !hasSymbols) || (!hasLetters && hasNumbers && !hasSymbols) || (!hasLetters && !hasNumbers && hasSymbols)){
+  this.levelOfValidity = "easy"
+  }else if((hasLetters && hasNumbers && !hasSymbols) || (!hasLetters && hasNumbers && hasSymbols) || (hasLetters && !hasNumbers && hasSymbols)){
+   this.levelOfValidity = "medium"
+  }else if((hasLetters && hasNumbers && hasSymbols)){
+    this.levelOfValidity = "strong"
   }
-
 }
+}
+}
+
